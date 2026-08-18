@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+/*
+ * 오퍼하우스 현장관리 — 플랫 디자인 토큰
+ * 로고의 테라코타(#C1522C)를 유일한 포인트 컬러로 쓰고 나머지는 무채색.
+ * 그림자/그라데이션 없이 명확한 색면과 여백으로 구조를 표현한다.
+ */
+@theme {
+  --color-canvas: #ffffff;
+  --color-surface: #f6f5f3;
+  --color-border: #e4e1dd;
+  --color-ink: #262220;
+  --color-ink-muted: #756c66;
+  --color-accent: #c1522c;
+  --color-accent-hover: #a5431f;
+  --color-accent-soft: #f8e8e0;
+  --color-danger: #b3392b;
+  --color-danger-soft: #f8e2df;
+  --color-success: #2f7a52;
+  --color-success-soft: #e2efe6;
+
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
