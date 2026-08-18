@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ScheduleEditor } from "@/components/admin/ScheduleEditor";
-import { ScheduleCalendar } from "@/components/admin/ScheduleCalendar";
+import { ScheduleCalendar } from "@/components/shared/ScheduleCalendar";
 import { cn } from "@/lib/utils/cn";
 import type { ScheduleItem } from "@/lib/supabase/database.types";
 

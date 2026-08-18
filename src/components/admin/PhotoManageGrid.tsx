@@ -1,32 +1,8 @@
 import { deletePhoto } from "@/app/actions/photos";
 import { DeleteButton } from "@/components/admin/DeleteButton";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { formatDateHeading } from "@/lib/utils/format";
+import { groupPhotosByDate } from "@/lib/utils/photos";
 import type { Photo } from "@/lib/supabase/database.types";
-
-interface PhotoGroup {
-  key: string;
-  label: string;
-  photos: Photo[];
-}
-
-function groupPhotosByDate(photos: Photo[]): PhotoGroup[] {
-  const groups = new Map<string, PhotoGroup>();
-
-  for (const photo of photos) {
-    const key = photo.taken_at ?? "__unknown__";
-    if (!groups.has(key)) {
-      groups.set(key, {
-        key,
-        label: photo.taken_at ? formatDateHeading(photo.taken_at) : "촬영일 미상",
-        photos: [],
-      });
-    }
-    groups.get(key)!.photos.push(photo);
-  }
-
-  return Array.from(groups.values());
-}
 
 export function PhotoManageGrid({
   photos,

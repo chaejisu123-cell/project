@@ -4,7 +4,7 @@ import { getCustomerSiteData } from "@/lib/customer-site";
 import { StatusBadge } from "@/components/ui/Badge";
 import { Section } from "@/components/ui/Section";
 import { NoticeList } from "@/components/site/NoticeList";
-import { ScheduleTimeline } from "@/components/site/ScheduleTimeline";
+import { ScheduleCalendar } from "@/components/shared/ScheduleCalendar";
 import { PhotoGallery } from "@/components/site/PhotoGallery";
 
 // 관리자가 언제든 사진/공정/공지를 업데이트할 수 있으므로 캐시 없이 항상 최신 상태로 렌더링한다.
@@ -60,7 +60,7 @@ export default async function CustomerSitePage(
         </Section>
 
         <Section title="공정표">
-          <ScheduleTimeline items={scheduleItems} />
+          <ScheduleCalendar items={scheduleItems} />
         </Section>
 
         <Section title="현장 사진">

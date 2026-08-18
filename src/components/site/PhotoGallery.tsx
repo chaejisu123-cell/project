@@ -1,12 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { formatDate } from "@/lib/utils/format";
+import { groupPhotosByDate } from "@/lib/utils/photos";
 import type { Photo } from "@/lib/supabase/database.types";
 
 export function PhotoGallery({ photos }: { photos: Photo[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const groups = useMemo(() => groupPhotosByDate(photos), [photos]);
+  const indexById = useMemo(() => {
+    const map = new Map<string, number>();
+    photos.forEach((photo, index) => map.set(photo.id, index));
+    return map;
+  }, [photos]);
 
   if (photos.length === 0) {
     return <EmptyState text="아직 등록된 사진이 없습니다." />;
@@ -28,22 +36,35 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {photos.map((photo, index) => (
-          <button
-            key={photo.id}
-            type="button"
-            onClick={() => setOpenIndex(index)}
-            className="group aspect-square overflow-hidden rounded-lg border border-border bg-surface"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={photo.image_url}
-              alt={photo.process_tag ?? "현장 사진"}
-              loading="lazy"
-              className="h-full w-full object-cover transition-transform group-hover:scale-105"
-            />
-          </button>
+      <div className="flex flex-col gap-8">
+        {groups.map((group) => (
+          <div key={group.key} className="flex flex-col gap-3">
+            <h3 className="flex items-baseline gap-2 text-sm font-semibold text-ink">
+              {group.label}
+              <span className="text-xs font-normal text-ink-muted">
+                {group.photos.length}장
+              </span>
+            </h3>
+
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {group.photos.map((photo) => (
+                <button
+                  key={photo.id}
+                  type="button"
+                  onClick={() => setOpenIndex(indexById.get(photo.id) ?? 0)}
+                  className="group aspect-square overflow-hidden rounded-lg border border-border bg-surface"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={photo.image_url}
+                    alt={photo.process_tag ?? "현장 사진"}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
 
