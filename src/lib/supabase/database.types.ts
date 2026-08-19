@@ -13,6 +13,7 @@
 export type ProjectStatus = "진행중" | "완료" | "보류";
 export type ScheduleStatus = "예정" | "진행중" | "완료";
 export type MaterialRecordType = "사용" | "발주";
+export type WorkerType = "기공" | "조공";
 
 export interface Database {
   public: {
@@ -253,6 +254,7 @@ export interface Database {
           project_id: string;
           work_date: string;
           process_name: string;
+          worker_type: WorkerType;
           worker_count: number;
           created_at: string;
         };
@@ -261,6 +263,7 @@ export interface Database {
           project_id: string;
           work_date: string;
           process_name: string;
+          worker_type?: WorkerType;
           worker_count?: number;
           created_at?: string;
         };
@@ -269,6 +272,7 @@ export interface Database {
           project_id?: string;
           work_date?: string;
           process_name?: string;
+          worker_type?: WorkerType;
           worker_count?: number;
           created_at?: string;
         };
