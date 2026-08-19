@@ -12,6 +12,7 @@
 
 export type ProjectStatus = "진행중" | "완료" | "보류";
 export type ScheduleStatus = "예정" | "진행중" | "완료";
+export type MaterialRecordType = "사용" | "발주";
 
 export interface Database {
   public: {
@@ -246,6 +247,85 @@ export interface Database {
           },
         ];
       };
+      labor_records: {
+        Row: {
+          id: string;
+          project_id: string;
+          work_date: string;
+          process_name: string;
+          worker_count: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          work_date: string;
+          process_name: string;
+          worker_count?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          work_date?: string;
+          process_name?: string;
+          worker_count?: number;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "labor_records_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      material_records: {
+        Row: {
+          id: string;
+          project_id: string;
+          material_name: string;
+          unit: string | null;
+          record_date: string;
+          quantity: number;
+          type: MaterialRecordType;
+          memo: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          material_name: string;
+          unit?: string | null;
+          record_date: string;
+          quantity?: number;
+          type: MaterialRecordType;
+          memo?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          material_name?: string;
+          unit?: string | null;
+          record_date?: string;
+          quantity?: number;
+          type?: MaterialRecordType;
+          memo?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "material_records_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -260,3 +340,6 @@ export type ScheduleItem = Database["public"]["Tables"]["schedule_items"]["Row"]
 export type Notice = Database["public"]["Tables"]["notices"]["Row"];
 export type BudgetItem = Database["public"]["Tables"]["budget_items"]["Row"];
 export type ExpenseItem = Database["public"]["Tables"]["expense_items"]["Row"];
+export type LaborRecord = Database["public"]["Tables"]["labor_records"]["Row"];
+export type MaterialRecord =
+  Database["public"]["Tables"]["material_records"]["Row"];

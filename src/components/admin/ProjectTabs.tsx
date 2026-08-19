@@ -9,6 +9,9 @@ const TABS = [
   { key: "photos", label: "사진" },
   { key: "schedule", label: "공정표" },
   { key: "notices", label: "공지사항" },
+  { key: "settlement", label: "정산" },
+  { key: "labor", label: "공수관리" },
+  { key: "materials", label: "자재관리" },
 ] as const;
 
 export function ProjectTabs({ projectId }: { projectId: string }) {

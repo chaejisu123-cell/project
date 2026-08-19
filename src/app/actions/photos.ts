@@ -57,7 +57,7 @@ export async function deletePhoto(photoId: string, projectId: string) {
     .maybeSingle();
 
   if (photo) {
-    const path = storagePathFromPublicUrl(photo.image_url);
+    const path = storagePathFromPublicUrl(photo.image_url, PHOTOS_BUCKET);
     if (path) {
       await supabase.storage.from(PHOTOS_BUCKET).remove([path]);
     }

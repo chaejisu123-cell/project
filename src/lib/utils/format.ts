@@ -5,6 +5,19 @@ export function formatWon(amount: number): string {
   return `${KRW.format(amount)}원`;
 }
 
+/**
+ * 공수(인원수)·자재 수량처럼 소수점이 있을 수도 없을 수도 있는 숫자를 표기한다.
+ * 정수는 소수점 없이, 0.5 같은 값은 그대로 표시한다.
+ */
+export function formatNumber(
+  value: number,
+  maximumFractionDigits = 1,
+): string {
+  return new Intl.NumberFormat("ko-KR", { maximumFractionDigits }).format(
+    value,
+  );
+}
+
 /** ISO 날짜 문자열을 "2026.08.18" 형태로 표기한다. */
 export function formatDate(value: string | null | undefined): string {
   if (!value) return "-";

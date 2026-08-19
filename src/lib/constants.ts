@@ -1,4 +1,5 @@
 export const PHOTOS_BUCKET = "site-photos";
+export const RECEIPTS_BUCKET = "receipt-images";
 
 export const PROCESS_TAGS = [
   "철거",
