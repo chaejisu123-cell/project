@@ -64,35 +64,27 @@ export function LaborSheet({
     return map;
   }, [records]);
 
-  // 누계: 프로젝트 전체 기간 중 선택한 날짜까지, 그 공정에 투입된 기공+조공 합.
-  const cumulativeByProcess = useMemo(() => {
+  // 누계: 프로젝트 전체 기간 중 선택한 날짜까지, 그 공정에 투입된 인원 누적 합.
+  // 기공/조공을 합치지 않고 각각 따로 누적한다.
+  const cumulativeByProcessType = useMemo(() => {
     const map = new Map<string, number>();
     for (const process of processNames) {
-      let sum = 0;
-      for (const record of records) {
-        if (record.process_name === process && record.work_date <= selectedDate) {
-          sum += record.worker_count;
+      for (const workerType of WORKER_TYPES) {
+        let sum = 0;
+        for (const record of records) {
+          if (
+            record.process_name === process &&
+            record.worker_type === workerType &&
+            record.work_date <= selectedDate
+          ) {
+            sum += record.worker_count;
+          }
         }
+        map.set(`${process}|${workerType}`, sum);
       }
-      map.set(process, sum);
     }
     return map;
   }, [processNames, records, selectedDate]);
-
-  const dailyTotals = useMemo(() => {
-    let gigong = 0;
-    let jogong = 0;
-    for (const process of processNames) {
-      gigong += recordMap.get(cellKey(selectedDate, process, "기공"))?.worker_count ?? 0;
-      jogong += recordMap.get(cellKey(selectedDate, process, "조공"))?.worker_count ?? 0;
-    }
-    return { gigong, jogong };
-  }, [processNames, recordMap, selectedDate]);
-
-  const grandCumulative = useMemo(
-    () => [...cumulativeByProcess.values()].reduce((sum, value) => sum + value, 0),
-    [cumulativeByProcess],
-  );
 
   async function handleCellBlur(process: string, workerType: WorkerType, rawValue: string) {
     setError(null);
@@ -193,69 +185,77 @@ export function LaborSheet({
         <EmptyState text="공정을 추가하면 표가 시작됩니다." />
       ) : (
         <Card className="overflow-x-auto p-4">
-          <table className="w-full min-w-[420px] border-collapse text-sm">
+          <table className="w-full table-fixed border-collapse text-sm">
+            <colgroup>
+              <col className="w-[30%]" />
+              <col className="w-[17.5%]" />
+              <col className="w-[17.5%]" />
+              <col className="w-[17.5%]" />
+              <col className="w-[17.5%]" />
+            </colgroup>
             <thead>
-              <tr className="border-b border-border text-left text-xs text-ink-muted">
-                <th className="pb-2 pr-3 font-medium">공종</th>
-                <th className="pb-2 px-2 text-right font-medium">기공</th>
-                <th className="pb-2 px-2 text-right font-medium">조공</th>
-                <th className="pb-2 pl-2 text-right font-medium">누계</th>
+              <tr className="border-b border-border text-xs text-ink-muted">
+                <th className="pb-2 pr-2 text-left font-medium">공종</th>
+                <th className="pb-2 px-1 text-right font-medium">기공</th>
+                <th className="pb-2 px-1 text-right font-medium">조공</th>
+                <th className="pb-2 px-1 text-right font-medium">기공누계</th>
+                <th className="pb-2 px-1 text-right font-medium">조공누계</th>
               </tr>
             </thead>
             <tbody>
-              {processNames.map((process) => (
-                <tr key={process} className="border-b border-border last:border-0">
-                  <td className="py-1.5 pr-3">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-ink">{process}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteProcess(process)}
-                        aria-label={`${process} 공정 삭제`}
-                        className="text-ink-muted hover:text-danger"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  </td>
-                  {WORKER_TYPES.map((workerType) => {
-                    const record = recordMap.get(cellKey(selectedDate, process, workerType));
-                    return (
-                      <td key={workerType} className="px-2 py-1.5">
-                        <input
-                          key={`${selectedDate}-${process}-${workerType}`}
-                          type="number"
-                          step={0.5}
-                          min={0}
-                          defaultValue={record?.worker_count ?? ""}
-                          onBlur={(event) =>
-                            handleCellBlur(process, workerType, event.target.value)
-                          }
-                          className="h-8 w-16 rounded border border-border bg-canvas px-2 text-right text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent"
-                        />
-                      </td>
-                    );
-                  })}
-                  <td className="py-1.5 pl-2 text-right text-ink-muted">
-                    {formatNumber(cumulativeByProcess.get(process) ?? 0)}
-                  </td>
-                </tr>
-              ))}
+              {processNames.map((process) => {
+                const gigongRecord = recordMap.get(cellKey(selectedDate, process, "기공"));
+                const jogongRecord = recordMap.get(cellKey(selectedDate, process, "조공"));
+                const gigongCumulative = cumulativeByProcessType.get(`${process}|기공`) ?? 0;
+                const jogongCumulative = cumulativeByProcessType.get(`${process}|조공`) ?? 0;
+
+                return (
+                  <tr key={process} className="border-b border-border last:border-0">
+                    <td className="py-1.5 pr-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="truncate text-ink">{process}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteProcess(process)}
+                          aria-label={`${process} 공정 삭제`}
+                          className="shrink-0 text-ink-muted hover:text-danger"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-1 py-1.5">
+                      <input
+                        key={`${selectedDate}-${process}-기공`}
+                        type="number"
+                        step={0.5}
+                        min={0}
+                        defaultValue={gigongRecord?.worker_count ?? ""}
+                        onBlur={(event) => handleCellBlur(process, "기공", event.target.value)}
+                        className="h-8 w-full rounded border border-border bg-canvas px-2 text-right text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent"
+                      />
+                    </td>
+                    <td className="px-1 py-1.5">
+                      <input
+                        key={`${selectedDate}-${process}-조공`}
+                        type="number"
+                        step={0.5}
+                        min={0}
+                        defaultValue={jogongRecord?.worker_count ?? ""}
+                        onBlur={(event) => handleCellBlur(process, "조공", event.target.value)}
+                        className="h-8 w-full rounded border border-border bg-canvas px-2 text-right text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent"
+                      />
+                    </td>
+                    <td className="px-1 py-1.5 text-right text-ink-muted">
+                      {formatNumber(gigongCumulative)}
+                    </td>
+                    <td className="px-1 py-1.5 text-right text-ink-muted">
+                      {formatNumber(jogongCumulative)}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
-            <tfoot>
-              <tr className="border-t border-border font-medium">
-                <td className="pt-2 pr-3 text-ink">합계</td>
-                <td className="pt-2 px-2 text-right text-ink">
-                  {formatNumber(dailyTotals.gigong)}
-                </td>
-                <td className="pt-2 px-2 text-right text-ink">
-                  {formatNumber(dailyTotals.jogong)}
-                </td>
-                <td className="pt-2 pl-2 text-right text-ink">
-                  {formatNumber(grandCumulative)}
-                </td>
-              </tr>
-            </tfoot>
           </table>
         </Card>
       )}
