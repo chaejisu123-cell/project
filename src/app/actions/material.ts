@@ -58,7 +58,7 @@ export async function createMaterialRecord(
     return { error: `자재 기록 등록에 실패했습니다: ${error?.message ?? ""}` };
   }
 
-  revalidatePath(`/admin/projects/${projectId}/materials`);
+  revalidatePath(`/admin/projects/${projectId}`);
   return { record: data };
 }
 
@@ -86,7 +86,7 @@ export async function updateMaterialRecord(
     return { error: `저장에 실패했습니다: ${error?.message ?? ""}` };
   }
 
-  revalidatePath(`/admin/projects/${projectId}/materials`);
+  revalidatePath(`/admin/projects/${projectId}`);
   return { record: data };
 }
 
@@ -94,7 +94,7 @@ export async function deleteMaterialRecord(id: string, projectId: string) {
   await requireUser();
   const supabase = await createClient();
   await supabase.from("material_records").delete().eq("id", id);
-  revalidatePath(`/admin/projects/${projectId}/materials`);
+  revalidatePath(`/admin/projects/${projectId}`);
 }
 
 /** 자재 카드 전체 삭제 — 같은 자재명의 모든 기록(사용+발주)을 한 번에 지운다. */
@@ -111,5 +111,5 @@ export async function deleteMaterialGroup(
     .eq("project_id", projectId)
     .eq("material_name", materialName);
 
-  revalidatePath(`/admin/projects/${projectId}/materials`);
+  revalidatePath(`/admin/projects/${projectId}`);
 }

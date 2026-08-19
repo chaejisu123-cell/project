@@ -46,9 +46,19 @@ export function NoticeForm({ projectId }: { projectId: string }) {
 
       {state?.message && <p className="text-sm text-danger">{state.message}</p>}
 
-      <Button type="submit" disabled={pending} className="self-start">
-        {pending ? "등록 중..." : "공지 등록"}
-      </Button>
+      <div className="flex items-center gap-3">
+        <Button type="submit" disabled={pending}>
+          {pending ? "등록 중..." : "공지 등록"}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          disabled={pending}
+          onClick={() => formRef.current?.reset()}
+        >
+          취소
+        </Button>
+      </div>
     </form>
   );
 }

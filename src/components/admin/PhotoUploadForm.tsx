@@ -26,6 +26,16 @@ export function PhotoUploadForm({ projectId }: { projectId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  function handleCancel() {
+    setFiles([]);
+    setTakenAt(today());
+    setProcessTag(PROCESS_TAGS[0]);
+    setError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (files.length === 0) {
@@ -139,9 +149,16 @@ export function PhotoUploadForm({ projectId }: { projectId: string }) {
 
       {error && <p className="text-sm text-danger">{error}</p>}
 
-      <Button type="submit" disabled={uploading} className="self-start">
-        {uploading ? (status ?? "업로드 중...") : "업로드"}
-      </Button>
+      <div className="flex items-center gap-3">
+        <Button type="submit" disabled={uploading}>
+          {uploading ? (status ?? "업로드 중...") : "업로드"}
+        </Button>
+        {files.length > 0 && (
+          <Button type="button" variant="ghost" disabled={uploading} onClick={handleCancel}>
+            취소
+          </Button>
+        )}
+      </div>
     </form>
   );
 }

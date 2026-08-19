@@ -63,7 +63,7 @@ export async function createScheduleItem(
     return { error: `공정 추가에 실패했습니다: ${error?.message ?? ""}` };
   }
 
-  revalidatePath(`/admin/projects/${projectId}/schedule`);
+  revalidatePath(`/admin/projects/${projectId}`);
   return { item: data };
 }
 
@@ -91,7 +91,7 @@ export async function updateScheduleItem(
     return { error: `저장에 실패했습니다: ${error?.message ?? ""}` };
   }
 
-  revalidatePath(`/admin/projects/${projectId}/schedule`);
+  revalidatePath(`/admin/projects/${projectId}`);
   return { item: data };
 }
 
@@ -99,7 +99,7 @@ export async function deleteScheduleItem(id: string, projectId: string) {
   await requireUser();
   const supabase = await createClient();
   await supabase.from("schedule_items").delete().eq("id", id);
-  revalidatePath(`/admin/projects/${projectId}/schedule`);
+  revalidatePath(`/admin/projects/${projectId}`);
 }
 
 /** 드래그로 순서를 바꾼 뒤, 배열 순서 그대로 sort_order(0..n-1)를 다시 매긴다. */
@@ -116,5 +116,5 @@ export async function reorderScheduleItems(
     ),
   );
 
-  revalidatePath(`/admin/projects/${projectId}/schedule`);
+  revalidatePath(`/admin/projects/${projectId}`);
 }

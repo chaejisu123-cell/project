@@ -42,7 +42,7 @@ export async function createPhotos(
     return { error: `사진 저장에 실패했습니다: ${error.message}` };
   }
 
-  revalidatePath(`/admin/projects/${projectId}/photos`);
+  revalidatePath(`/admin/projects/${projectId}`);
   return { success: true };
 }
 
@@ -64,5 +64,5 @@ export async function deletePhoto(photoId: string, projectId: string) {
   }
 
   await supabase.from("photos").delete().eq("id", photoId);
-  revalidatePath(`/admin/projects/${projectId}/photos`);
+  revalidatePath(`/admin/projects/${projectId}`);
 }

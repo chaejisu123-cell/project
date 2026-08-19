@@ -48,7 +48,7 @@ export async function createBudgetItem(
     return { error: `예산 항목 추가에 실패했습니다: ${error?.message ?? ""}` };
   }
 
-  revalidatePath(`/admin/projects/${projectId}/settlement`);
+  revalidatePath(`/admin/projects/${projectId}`);
   return { item: data };
 }
 
@@ -76,7 +76,7 @@ export async function updateBudgetItem(
     return { error: `저장에 실패했습니다: ${error?.message ?? ""}` };
   }
 
-  revalidatePath(`/admin/projects/${projectId}/settlement`);
+  revalidatePath(`/admin/projects/${projectId}`);
   return { item: data };
 }
 
@@ -86,5 +86,5 @@ export async function deleteBudgetItem(id: string, projectId: string) {
   await requireUser();
   const supabase = await createClient();
   await supabase.from("budget_items").delete().eq("id", id);
-  revalidatePath(`/admin/projects/${projectId}/settlement`);
+  revalidatePath(`/admin/projects/${projectId}`);
 }

@@ -106,6 +106,11 @@ function BudgetRow({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isDirty =
+    category !== (item.category ?? "") ||
+    itemName !== item.item_name ||
+    plannedAmount !== String(item.planned_amount);
+
   async function handleSave() {
     setSaving(true);
     setError(null);
@@ -120,6 +125,13 @@ function BudgetRow({
     } else {
       setError(result.error);
     }
+  }
+
+  function handleCancel() {
+    setCategory(item.category ?? "");
+    setItemName(item.item_name);
+    setPlannedAmount(String(item.planned_amount));
+    setError(null);
   }
 
   return (
@@ -147,11 +159,16 @@ function BudgetRow({
             type="button"
             size="sm"
             variant="secondary"
-            disabled={saving}
+            disabled={saving || !isDirty}
             onClick={handleSave}
           >
             {saving ? "저장 중..." : "저장"}
           </Button>
+          {isDirty && (
+            <Button type="button" size="sm" variant="ghost" onClick={handleCancel}>
+              취소
+            </Button>
+          )}
           <Button type="button" size="sm" variant="ghost" onClick={onDelete}>
             삭제
           </Button>

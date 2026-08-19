@@ -53,17 +53,21 @@ export async function createProject(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.from("projects").insert({
-    ...parsed.data,
-    site_token: generateSiteToken(),
-  });
+  const { data, error } = await supabase
+    .from("projects")
+    .insert({
+      ...parsed.data,
+      site_token: generateSiteToken(),
+    })
+    .select("id")
+    .single();
 
-  if (error) {
-    return { message: `현장 등록에 실패했습니다: ${error.message}` };
+  if (error || !data) {
+    return { message: `현장 등록에 실패했습니다: ${error?.message ?? ""}` };
   }
 
   revalidatePath("/admin");
-  redirect("/admin");
+  redirect(`/admin/projects/${data.id}`);
 }
 
 export async function updateProject(
@@ -89,5 +93,6 @@ export async function updateProject(
   }
 
   revalidatePath("/admin");
-  redirect("/admin");
+  revalidatePath(`/admin/projects/${id}`);
+  redirect(`/admin/projects/${id}`);
 }

@@ -75,7 +75,7 @@ export async function createExpense(
     return { error: `지출 등록에 실패했습니다: ${error?.message ?? ""}` };
   }
 
-  revalidatePath(`/admin/projects/${projectId}/settlement`);
+  revalidatePath(`/admin/projects/${projectId}`);
   return { item: data };
 }
 
@@ -97,5 +97,5 @@ export async function deleteExpense(id: string, projectId: string) {
   }
 
   await supabase.from("expense_items").delete().eq("id", id);
-  revalidatePath(`/admin/projects/${projectId}/settlement`);
+  revalidatePath(`/admin/projects/${projectId}`);
 }

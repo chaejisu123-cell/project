@@ -25,6 +25,16 @@ export function MaterialForm({ projectId }: { projectId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  function handleCancel() {
+    setMaterialName("");
+    setUnit("");
+    setRecordDate(today());
+    setQuantity("");
+    setType("사용");
+    setMemo("");
+    setError(null);
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setSubmitting(true);
@@ -120,9 +130,14 @@ export function MaterialForm({ projectId }: { projectId: string }) {
 
       {error && <p className="text-sm text-danger">{error}</p>}
 
-      <Button type="submit" disabled={submitting} className="self-start">
-        {submitting ? "저장 중..." : "자재 기록 추가"}
-      </Button>
+      <div className="flex items-center gap-3">
+        <Button type="submit" disabled={submitting}>
+          {submitting ? "저장 중..." : "자재 기록 추가"}
+        </Button>
+        <Button type="button" variant="ghost" disabled={submitting} onClick={handleCancel}>
+          취소
+        </Button>
+      </div>
     </form>
   );
 }

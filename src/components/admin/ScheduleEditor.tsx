@@ -158,6 +158,12 @@ function ScheduleRow({
     opacity: isDragging ? 0.6 : 1,
   };
 
+  const isDirty =
+    processName !== item.process_name ||
+    startDate !== (item.start_date ?? "") ||
+    endDate !== (item.end_date ?? "") ||
+    status !== item.status;
+
   async function handleSave() {
     setSaving(true);
     setError(null);
@@ -173,6 +179,14 @@ function ScheduleRow({
     } else {
       setError(result.error);
     }
+  }
+
+  function handleCancel() {
+    setProcessName(item.process_name);
+    setStartDate(item.start_date ?? "");
+    setEndDate(item.end_date ?? "");
+    setStatus(item.status);
+    setError(null);
   }
 
   return (
@@ -228,11 +242,16 @@ function ScheduleRow({
             type="button"
             size="sm"
             variant="secondary"
-            disabled={saving}
+            disabled={saving || !isDirty}
             onClick={handleSave}
           >
             {saving ? "저장 중..." : "저장"}
           </Button>
+          {isDirty && (
+            <Button type="button" size="sm" variant="ghost" onClick={handleCancel}>
+              취소
+            </Button>
+          )}
           <Button type="button" size="sm" variant="ghost" onClick={onDelete}>
             삭제
           </Button>

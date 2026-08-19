@@ -49,7 +49,7 @@ export async function createNotice(
     return { message: `공지 등록에 실패했습니다: ${error.message}` };
   }
 
-  revalidatePath(`/admin/projects/${projectId}/notices`);
+  revalidatePath(`/admin/projects/${projectId}`);
   return { ok: true };
 }
 
@@ -57,5 +57,5 @@ export async function deleteNotice(id: string, projectId: string) {
   await requireUser();
   const supabase = await createClient();
   await supabase.from("notices").delete().eq("id", id);
-  revalidatePath(`/admin/projects/${projectId}/notices`);
+  revalidatePath(`/admin/projects/${projectId}`);
 }

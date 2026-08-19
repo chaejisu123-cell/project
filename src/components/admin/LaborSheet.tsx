@@ -39,6 +39,10 @@ export function LaborSheet({
   const [selectedDate, setSelectedDate] = useState(today());
   const [newProcessName, setNewProcessName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  // 저장을 누르기 전까지 입력값은 여기(초안)에만 머문다. 취소하면 서버 호출 없이
+  // 해당 키만 지워서 마지막 저장값으로 되돌린다. 키가 있다는 것 자체가 "수정 중"이라는 뜻.
+  const [draftValues, setDraftValues] = useState<Record<string, string>>({});
+  const [savingRow, setSavingRow] = useState<string | null>(null);
 
   // 공정 목록: 이미 저장된 기록이 있으면 거기서(가장 먼저 등장한 순서로) 가져오고,
   // 완전히 새 현장이면 기본 공종 11개로 시작한다. 별도의 공정 목록 테이블은 없다.
@@ -86,27 +90,65 @@ export function LaborSheet({
     return map;
   }, [processNames, records, selectedDate]);
 
-  async function handleCellBlur(process: string, workerType: WorkerType, rawValue: string) {
-    setError(null);
-    const result = await saveLaborCell(projectId, {
-      work_date: selectedDate,
-      process_name: process,
-      worker_type: workerType,
-      worker_count: rawValue === "" ? 0 : rawValue,
-    });
+  function handleDraftChange(process: string, workerType: WorkerType, rawValue: string) {
+    const key = cellKey(selectedDate, process, workerType);
+    setDraftValues((current) => ({ ...current, [key]: rawValue }));
+  }
 
-    if ("error" in result) {
-      setError(result.error);
-      return;
+  function isRowDirty(process: string) {
+    return (
+      cellKey(selectedDate, process, "기공") in draftValues ||
+      cellKey(selectedDate, process, "조공") in draftValues
+    );
+  }
+
+  async function handleRowSave(process: string) {
+    setError(null);
+    setSavingRow(process);
+
+    const pending = WORKER_TYPES.filter(
+      (workerType) => cellKey(selectedDate, process, workerType) in draftValues,
+    );
+
+    for (const workerType of pending) {
+      const key = cellKey(selectedDate, process, workerType);
+      const rawValue = draftValues[key];
+      const result = await saveLaborCell(projectId, {
+        work_date: selectedDate,
+        process_name: process,
+        worker_type: workerType,
+        worker_count: rawValue === "" ? 0 : rawValue,
+      });
+
+      if ("error" in result) {
+        setError(result.error);
+        setSavingRow(null);
+        return;
+      }
+
+      setRecords((current) => {
+        const without = current.filter(
+          (record) =>
+            cellKey(record.work_date, record.process_name, record.worker_type) !== key,
+        );
+        return result.record ? [...without, result.record] : without;
+      });
+      setDraftValues((current) => {
+        const next = { ...current };
+        delete next[key];
+        return next;
+      });
     }
 
-    setRecords((current) => {
-      const targetKey = cellKey(selectedDate, process, workerType);
-      const without = current.filter(
-        (record) =>
-          cellKey(record.work_date, record.process_name, record.worker_type) !== targetKey,
-      );
-      return result.record ? [...without, result.record] : without;
+    setSavingRow(null);
+  }
+
+  function handleRowCancel(process: string) {
+    setDraftValues((current) => {
+      const next = { ...current };
+      delete next[cellKey(selectedDate, process, "기공")];
+      delete next[cellKey(selectedDate, process, "조공")];
+      return next;
     });
   }
 
@@ -123,6 +165,13 @@ export function LaborSheet({
   async function handleDeleteProcess(process: string) {
     setProcessNames((current) => current.filter((name) => name !== process));
     setRecords((current) => current.filter((record) => record.process_name !== process));
+    setDraftValues((current) => {
+      const next = { ...current };
+      for (const key of Object.keys(next)) {
+        if (key.includes(`|${process}|`)) delete next[key];
+      }
+      return next;
+    });
     await deleteLaborProcess(projectId, process);
   }
 
@@ -187,11 +236,12 @@ export function LaborSheet({
         <Card className="overflow-x-auto p-4">
           <table className="w-full table-fixed border-collapse text-sm">
             <colgroup>
-              <col className="w-[30%]" />
-              <col className="w-[17.5%]" />
-              <col className="w-[17.5%]" />
-              <col className="w-[17.5%]" />
-              <col className="w-[17.5%]" />
+              <col className="w-[22%]" />
+              <col className="w-[15%]" />
+              <col className="w-[15%]" />
+              <col className="w-[15%]" />
+              <col className="w-[15%]" />
+              <col className="w-[18%]" />
             </colgroup>
             <thead>
               <tr className="border-b border-border text-xs text-ink-muted">
@@ -200,6 +250,7 @@ export function LaborSheet({
                 <th className="pb-2 px-1 text-right font-medium">조공</th>
                 <th className="pb-2 px-1 text-right font-medium">기공누계</th>
                 <th className="pb-2 px-1 text-right font-medium">조공누계</th>
+                <th className="pb-2 pl-2" />
               </tr>
             </thead>
             <tbody>
@@ -208,6 +259,10 @@ export function LaborSheet({
                 const jogongRecord = recordMap.get(cellKey(selectedDate, process, "조공"));
                 const gigongCumulative = cumulativeByProcessType.get(`${process}|기공`) ?? 0;
                 const jogongCumulative = cumulativeByProcessType.get(`${process}|조공`) ?? 0;
+                const gigongKey = cellKey(selectedDate, process, "기공");
+                const jogongKey = cellKey(selectedDate, process, "조공");
+                const dirty = isRowDirty(process);
+                const saving = savingRow === process;
 
                 return (
                   <tr key={process} className="border-b border-border last:border-0">
@@ -226,23 +281,25 @@ export function LaborSheet({
                     </td>
                     <td className="px-1 py-1.5">
                       <input
-                        key={`${selectedDate}-${process}-기공`}
                         type="number"
                         step={0.5}
                         min={0}
-                        defaultValue={gigongRecord?.worker_count ?? ""}
-                        onBlur={(event) => handleCellBlur(process, "기공", event.target.value)}
+                        value={draftValues[gigongKey] ?? gigongRecord?.worker_count ?? ""}
+                        onChange={(event) =>
+                          handleDraftChange(process, "기공", event.target.value)
+                        }
                         className="h-8 w-full rounded border border-border bg-canvas px-2 text-right text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent"
                       />
                     </td>
                     <td className="px-1 py-1.5">
                       <input
-                        key={`${selectedDate}-${process}-조공`}
                         type="number"
                         step={0.5}
                         min={0}
-                        defaultValue={jogongRecord?.worker_count ?? ""}
-                        onBlur={(event) => handleCellBlur(process, "조공", event.target.value)}
+                        value={draftValues[jogongKey] ?? jogongRecord?.worker_count ?? ""}
+                        onChange={(event) =>
+                          handleDraftChange(process, "조공", event.target.value)
+                        }
                         className="h-8 w-full rounded border border-border bg-canvas px-2 text-right text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent"
                       />
                     </td>
@@ -251,6 +308,30 @@ export function LaborSheet({
                     </td>
                     <td className="px-1 py-1.5 text-right text-ink-muted">
                       {formatNumber(jogongCumulative)}
+                    </td>
+                    <td className="py-1.5 pl-2">
+                      {dirty && (
+                        <div className="flex items-center gap-1">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            disabled={saving}
+                            onClick={() => handleRowSave(process)}
+                          >
+                            {saving ? "저장 중..." : "저장"}
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            disabled={saving}
+                            onClick={() => handleRowCancel(process)}
+                          >
+                            취소
+                          </Button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );

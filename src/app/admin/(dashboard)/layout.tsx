@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { requireUser } from "@/lib/dal";
 import { logout } from "@/app/actions/auth";
 import { Button } from "@/components/ui/Button";
@@ -12,12 +13,15 @@ export default async function AdminDashboardLayout({
 
   return (
     <div className="min-h-dvh bg-surface">
-      <header className="border-b border-border bg-canvas">
+      <header className="sticky top-0 z-10 border-b border-border bg-canvas">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
           <div>
-            <p className="text-xs font-medium uppercase tracking-widest text-accent">
-              OFFERHOUSE
-            </p>
+            <Link
+              href="/admin"
+              className="text-sm font-semibold uppercase tracking-widest text-accent hover:text-accent-hover"
+            >
+              오퍼하우스
+            </Link>
             <p className="text-sm text-ink-muted">{user.email}</p>
           </div>
           <form action={logout}>

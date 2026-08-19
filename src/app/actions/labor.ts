@@ -49,7 +49,7 @@ export async function saveLaborCell(
       .eq("process_name", process_name)
       .eq("worker_type", worker_type);
 
-    revalidatePath(`/admin/projects/${projectId}/labor`);
+    revalidatePath(`/admin/projects/${projectId}`);
     return { record: null };
   }
 
@@ -66,7 +66,7 @@ export async function saveLaborCell(
     return { error: `저장에 실패했습니다: ${error?.message ?? ""}` };
   }
 
-  revalidatePath(`/admin/projects/${projectId}/labor`);
+  revalidatePath(`/admin/projects/${projectId}`);
   return { record: data };
 }
 
@@ -81,5 +81,5 @@ export async function deleteLaborProcess(projectId: string, processName: string)
     .eq("project_id", projectId)
     .eq("process_name", processName);
 
-  revalidatePath(`/admin/projects/${projectId}/labor`);
+  revalidatePath(`/admin/projects/${projectId}`);
 }
